@@ -1,0 +1,1188 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap">
+<style>
+/* Layout: 1 column result sheet. Filters (period, product type, month) on top, then the hero with before/after-tax numbers, goal, chart, lists, CSV import. */
+:root {
+  --bg: #eef1f4;
+  --surface: #ffffff;
+  --ink: #16202e;
+  --muted: #5d6b7e;
+  --line: #d9e0e8;
+  --accent: #23407a;
+  --accent-ink: #ffffff;
+  --gain: #0b8a5b;
+  --loss: #d2412a;
+  --gain-soft: #e1f3ea;
+  --loss-soft: #fbe6e1;
+  --tok-bg: #e4eaf7;
+  --tok-fg: #23407a;
+  --font-display: "Barlow Condensed", "Arial Narrow", "Noto Sans JP", sans-serif;
+  --font-body: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e141e;
+    --surface: #161e2b;
+    --ink: #e6ebf3;
+    --muted: #93a1b5;
+    --line: #26313f;
+    --accent: #8fb0f2;
+    --accent-ink: #0e141e;
+    --gain: #3fcf9b;
+    --loss: #ff7b63;
+    --gain-soft: #12302a;
+    --loss-soft: #3a1f1c;
+  --tok-bg: #1d2a45;
+  --tok-fg: #8fb0f2;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e141e;
+  --surface: #161e2b;
+  --ink: #e6ebf3;
+  --muted: #93a1b5;
+  --line: #26313f;
+  --accent: #8fb0f2;
+  --accent-ink: #0e141e;
+  --gain: #3fcf9b;
+  --loss: #ff7b63;
+  --gain-soft: #12302a;
+  --loss-soft: #3a1f1c;
+  --tok-bg: #1d2a45;
+  --tok-fg: #8fb0f2;
+  color-scheme: dark;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+  padding-inline: 16px;
+  padding-block: 20px 48px;
+}
+.wrap { max-width: 860px; margin-inline: auto; display: grid; gap: 16px; }
+.num { font-family: var(--font-display); font-variant-numeric: tabular-nums; letter-spacing: 0.01em; }
+.gain { color: var(--gain); }
+.loss { color: var(--loss); }
+
+header.top { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.eyebrow { font-family: var(--font-display); font-weight: 600; letter-spacing: 0.28em; font-size: 14px; color: var(--muted); }
+h1 { margin: 0; font-size: 22px; font-weight: 700; line-height: 1.3; text-wrap: balance; }
+
+.seg { display: inline-flex; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 3px; gap: 2px; max-width: 100%; }
+.seg button {
+  font: inherit; font-size: 14px; font-weight: 500; color: var(--muted);
+  background: transparent; border: 0; border-radius: 6px; padding: 6px 14px; cursor: pointer; min-height: 36px; white-space: nowrap;
+}
+.seg button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); }
+.seg.small button { padding: 4px 10px; min-height: 30px; font-size: 13px; }
+button:focus-visible, summary:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.filters { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.filters .lab { font-size: 12px; color: var(--muted); }
+
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; min-width: 0; }
+.hero { padding-block: 22px 18px; }
+.hero .label { color: var(--muted); font-size: 13px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.scope { background: var(--bg); border: 1px solid var(--line); border-radius: 99px; padding: 0 10px; font-size: 12px; line-height: 22px; color: var(--ink); }
+
+.pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; margin-top: 10px; }
+.pair.one { grid-template-columns: minmax(0, 1fr); }
+.pcol { min-width: 0; }
+.pcol.post { padding-left: 16px; border-left: 1px solid var(--line); }
+.plabel { font-size: 12px; color: var(--muted); min-height: 24px; display: flex; align-items: center; }
+.tag { background: var(--accent); color: var(--accent-ink); border-radius: 4px; padding: 0 8px; line-height: 22px; font-size: 12px; font-weight: 700; }
+.total { font-size: clamp(38px, 10.5vw, 72px); font-weight: 700; line-height: 1; margin-top: 4px; display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+.total .yen { font-size: 0.32em; font-weight: 600; color: var(--muted); }
+.hero .sub { color: var(--muted); font-size: 13px; margin-top: 10px; }
+.taxnote { color: var(--muted); font-size: 12px; margin-top: 4px; }
+
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 18px 0 0; border-top: 1px solid var(--line); }
+.stat { padding: 12px 12px 0 0; min-width: 0; }
+.stat + .stat { padding-left: 12px; border-left: 1px solid var(--line); }
+.stat dt { font-size: 12px; color: var(--muted); margin: 0; }
+.stat dd { margin: 2px 0 0; font-size: 28px; font-weight: 600; line-height: 1.15; overflow-wrap: anywhere; }
+.stat small { display: block; font-size: 12px; color: var(--muted); font-family: var(--font-body); }
+
+h2 { margin: 0 0 10px; font-size: 14px; font-weight: 700; }
+.chart-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.chart-head h2 { margin: 0; }
+.chart { overflow-x: auto; }
+.chart svg { display: block; width: 100%; height: auto; min-width: 320px; }
+.chart text { fill: var(--muted); font-family: var(--font-display); font-size: 13px; font-variant-numeric: tabular-nums; }
+.chart .grid { stroke: var(--line); stroke-width: 1; }
+.chart .zero { stroke: var(--muted); stroke-width: 1.2; }
+.chart .bar-gain { fill: var(--gain); }
+.chart .bar-loss { fill: var(--loss); }
+.chart .val-gain { fill: var(--gain); font-weight: 600; font-size: 14px; }
+.chart .val-loss { fill: var(--loss); font-weight: 600; font-size: 14px; }
+.chart .mlabel { fill: var(--ink); font-size: 14px; }
+.chart .dim { opacity: 0.3; }
+.chart .mlabel.sel { fill: var(--accent); font-weight: 700; }
+.chart .hit { cursor: pointer; fill: transparent; }
+
+.chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; position: relative; }
+.chips:empty { display: none; }
+.chip-b {
+  flex: 0 0 auto; font: inherit; font-size: 14px; font-weight: 500; color: var(--ink);
+  background: var(--surface); border: 1px solid var(--line); border-radius: 99px;
+  padding: 6px 14px; min-height: 36px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap;
+}
+.chip-b[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--line); display: inline-block; }
+.dot.gain { background: var(--gain); }
+.dot.loss { background: var(--loss); }
+.rowbtn {
+  font: inherit; background: none; border: 0; padding: 0; min-height: 32px; text-align: left;
+  color: var(--accent); cursor: pointer; text-decoration: underline; text-underline-offset: 3px;
+}
+tr.sel td { background: var(--bg); }
+
+.goal-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.goal-pct { font-size: 56px; font-weight: 700; line-height: 1; margin-top: 8px; }
+.goal-pct span { font-size: 0.45em; color: var(--muted); margin-left: 4px; }
+.track { height: 12px; border-radius: 99px; background: var(--line); overflow: hidden; margin-block: 12px 14px; }
+.fill { height: 100%; background: var(--accent); border-radius: 99px; }
+.goal-nums { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 0; }
+.goal-nums div { min-width: 0; }
+.goal-nums dt { font-size: 12px; color: var(--muted); margin: 0; }
+.goal-nums dd { margin: 0; font-size: 22px; font-weight: 600; line-height: 1.2; overflow-wrap: anywhere; }
+.fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.fields label { display: grid; gap: 4px; font-size: 12px; color: var(--muted); min-width: 0; }
+.fields input, select.sel-in {
+  font: inherit; font-size: 16px; color: var(--ink); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 8px; padding: 9px 10px; min-width: 0; width: 100%;
+}
+select.sel-in { width: auto; font-size: 14px; padding: 8px 10px; }
+.hint { margin: 10px 0 0; font-size: 12px; color: var(--muted); }
+#goalMsg { font-size: 13px; color: var(--loss); }
+.goal-note { margin-top: 10px; font-size: 13px; color: var(--muted); }
+
+.cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th { text-align: left; font-weight: 500; font-size: 12px; color: var(--muted); padding: 0 0 6px; border-bottom: 1px solid var(--line); }
+td { padding: 8px 0; border-bottom: 1px solid var(--line); vertical-align: baseline; }
+tr:last-child td { border-bottom: 0; }
+th.r, td.r { text-align: right; }
+td .num { font-size: 20px; font-weight: 600; }
+td.dim { color: var(--muted); }
+td.name { overflow-wrap: anywhere; padding-right: 8px; }
+td.name small { color: var(--muted); }
+td small.net { display: block; color: var(--muted); font-size: 12px; font-family: var(--font-body); }
+
+.empty { text-align: center; padding-block: 28px; color: var(--muted); }
+.empty strong { display: block; color: var(--ink); font-size: 16px; margin-bottom: 4px; }
+
+.acct { display: inline-block; font-size: 11px; line-height: 18px; padding: 0 7px; border-radius: 4px; background: var(--bg); color: var(--muted); border: 1px solid var(--line); white-space: nowrap; font-family: var(--font-body); font-weight: 500; vertical-align: 1px; }
+.acct.tok { background: var(--tok-bg); color: var(--tok-fg); border-color: transparent; }
+.acct.nisa { background: var(--gain-soft); color: var(--gain); border-color: transparent; }
+.acctline { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 12px; font-size: 13px; color: var(--muted); }
+.acctline > span { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.acctline b { font-family: var(--font-display); font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.fxin { width: 8em; font: inherit; font-size: 16px; background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+#fxMsg { font-size: 13px; color: var(--loss); }
+
+details.import summary { cursor: pointer; font-weight: 700; font-size: 14px; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+details.import summary::-webkit-details-marker { display: none; }
+details.import summary::after { content: "＋"; color: var(--muted); }
+details.import[open] summary::after { content: "－"; }
+.import-body { display: grid; gap: 10px; margin-top: 12px; }
+.import-body p { margin: 0; color: var(--muted); font-size: 13px; }
+textarea {
+  width: 100%; min-height: 110px; resize: vertical; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 12px;
+  background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 10px;
+}
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.btn {
+  font: inherit; font-weight: 700; font-size: 14px; background: var(--accent); color: var(--accent-ink);
+  border: 0; border-radius: 8px; padding: 9px 18px; min-height: 40px; cursor: pointer;
+}
+.btn.ghost { background: transparent; color: var(--accent); border: 1px solid var(--line); font-weight: 500; }
+input[type="file"] { font: inherit; font-size: 13px; color: var(--muted); max-width: 100%; }
+#msg { min-height: 1.5em; font-size: 13px; color: var(--muted); overflow-wrap: anywhere; }
+#msg.ok { color: var(--gain); }
+#msg.err { color: var(--loss); }
+.foot { color: var(--muted); font-size: 12px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: center; }
+.linkbtn { font: inherit; font-size: 12px; color: var(--muted); background: none; border: 0; padding: 4px 0; cursor: pointer; text-decoration: underline; }
+
+@media (max-width: 640px) {
+  .fields { grid-template-columns: minmax(0, 1fr); }
+  .goal-nums dd { font-size: 18px; }
+  .pcol.post { padding-left: 12px; }
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stat:nth-child(3) { border-left: 0; padding-left: 0; }
+  .stat:nth-child(n+3) { border-top: 1px solid var(--line); margin-top: 12px; }
+  .cols { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+/* ---- v2 look ---- */
+body { background: var(--bg); }
+.wrap { gap: 14px; }
+h1 { font-size: 24px; letter-spacing: 0.01em; }
+.panel { border-radius: 16px; padding: 20px; border-color: transparent; box-shadow: 0 1px 2px rgba(22,32,46,.06), 0 6px 20px rgba(22,32,46,.04); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .panel { border-color: var(--line); box-shadow: none; } }
+:root[data-theme="dark"] .panel { border-color: var(--line); box-shadow: none; }
+h2 { font-size: 15px; }
+.seg { border-radius: 10px; }
+.seg button { border-radius: 8px; }
+.hero { padding: 22px 20px 18px; border-top: 4px solid var(--line); }
+.hero.up { border-top-color: var(--gain); }
+.hero.down { border-top-color: var(--loss); }
+.hero .kicker { margin-top: 14px; font-size: 13px; font-weight: 700; color: var(--muted); }
+.hero .total { margin-top: 2px; font-size: clamp(48px, 14vw, 88px); gap: 4px; flex-wrap: nowrap; }
+.hero .total .num { font-weight: 700; }
+.hero .u { font-size: 0.3em; font-weight: 600; color: var(--muted); margin-left: 4px; font-family: var(--font-body); }
+.hero .eq { margin-top: 6px; font-size: 13px; color: var(--muted); }
+.acc { list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 8px; }
+.acc li { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; padding: 10px 12px; background: var(--bg); border-radius: 10px; }
+.acc .mid { color: var(--muted); font-size: 13px; }
+.acc .val { text-align: right; white-space: nowrap; }
+.acc .val .num { font-size: 22px; font-weight: 600; }
+.acc .val .u { font-size: 12px; margin-left: 2px; }
+.acc .acct { font-size: 12px; line-height: 22px; }
+.tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 16px 0 0; }
+.tile { padding: 12px; border: 1px solid var(--line); border-radius: 10px; min-width: 0; }
+.tile dt { font-size: 12px; color: var(--muted); margin: 0; }
+.tile dd { margin: 2px 0 0; line-height: 1.15; }
+.tile dd .num { font-size: 26px; font-weight: 600; }
+.tile small { display: block; margin-top: 2px; font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.how { margin-top: 14px; font-size: 12px; color: var(--muted); }
+.how summary { cursor: pointer; width: fit-content; }
+.how p { margin: 8px 0 0; line-height: 1.7; }
+.chart .bar-gain, .chart .bar-loss { rx: 3px; }
+@media (max-width: 640px) {
+  .panel { padding: 16px; }
+  .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .acc li { grid-template-columns: auto 1fr auto; padding: 10px; }
+}
+</style>
+
+<title>確定損益リザルト</title><script src="config.js"></script><script src="https://accounts.google.com/gsi/client" async defer></script><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png"><meta name="theme-color" content="#23407a"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="損益"><style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0}[hidden]{display:none!important}
+/* ---- v3 ---- */
+body { font-size: 16px; }
+.filters .lab { font-size: 13px; font-weight: 700; color: var(--ink); min-width: 2.5em; }
+.hero .eq { font-size: 14px; }
+.acards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 18px; }
+.acard { border: 1px solid var(--line); border-radius: 12px; padding: 14px; background: var(--bg); min-width: 0; }
+.ahead { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.ahead .at { font-weight: 700; font-size: 15px; }
+.arow { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 5px 0; font-size: 14px; color: var(--muted); border-top: 1px solid var(--line); }
+.arow .num { font-size: 20px; font-weight: 600; }
+.arow .u { font-size: 12px; margin-left: 2px; }
+.arow .tx { color: var(--ink); text-align: right; font-size: 13px; }
+.arow.big { color: var(--ink); font-weight: 700; padding-top: 8px; }
+.arow.big .num { font-size: 28px; font-weight: 700; }
+.acard:only-child { grid-column: 1 / -1; }
+.drop { display: grid; gap: 4px; place-items: center; text-align: center; padding: 26px 16px; border: 2px dashed var(--line); border-radius: 14px; cursor: pointer; background: var(--bg); color: var(--muted); font-size: 13px; }
+.drop strong { color: var(--ink); font-size: 16px; }
+body.dragging .drop { border-color: var(--accent); background: var(--tok-bg); }
+body.dragging::after { content: "ここにドロップ"; position: fixed; inset: 0; display: grid; place-items: center; font-size: 28px; font-weight: 700; color: var(--accent); background: color-mix(in srgb, var(--bg) 82%, transparent); border: 4px dashed var(--accent); pointer-events: none; z-index: 10; }
+#msg { white-space: pre-line; }
+@media (max-width: 520px) { .acards { grid-template-columns: minmax(0, 1fr); } }
+
+.syncbar { padding: 12px 16px; }
+.srow { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.srow .st { display: grid; gap: 2px; min-width: 0; font-size: 14px; }
+.srow small { color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+.setup { margin-top: 12px; display: grid; gap: 8px; }
+.setup label { font-size: 12px; color: var(--muted); }
+.setup .row { flex-wrap: nowrap; }
+</style></head><body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>確定損益リザルト</h1>
+    </div>
+    <div class="seg" role="tablist" aria-label="集計期間" id="periodSeg">
+      <button role="tab" data-p="3" aria-selected="false">3か月</button>
+      <button role="tab" data-p="6" aria-selected="true">6か月</button>
+      <button role="tab" data-p="0" aria-selected="false">全期間</button>
+    </div>
+  </header>
+
+  <section class="panel syncbar" id="syncBar"></section>
+
+  <div class="filters">
+    <span class="lab">種類</span>
+    <div class="seg" role="tablist" aria-label="種類" id="catSeg">
+      <button role="tab" data-cat="all" aria-selected="true">全体</button>
+      <button role="tab" data-cat="jp" aria-selected="false">国内株</button>
+      <button role="tab" data-cat="us" aria-selected="false">米国株</button>
+      <button role="tab" data-cat="fund" aria-selected="false">投信</button>
+    </div>
+  </div>
+
+  <div class="filters">
+    <span class="lab">口座</span>
+    <div class="seg" role="tablist" aria-label="口座" id="acctSeg">
+      <button role="tab" data-acct="all" aria-selected="true">全部</button>
+      <button role="tab" data-acct="tok" aria-selected="false">特定</button>
+      <button role="tab" data-acct="nisa" aria-selected="false">NISA</button>
+    </div>
+  </div>
+
+  <nav class="chips" id="monthNav" aria-label="月を選ぶ"></nav>
+
+  <section class="panel hero" id="hero" aria-live="polite"></section>
+
+  <section class="panel" id="detailPanel" hidden></section>
+
+  <section class="panel" id="fxPanel" data-mode="" hidden></section>
+
+  <section class="panel" id="goalPanel" data-mode=""></section>
+
+  <section class="panel" id="typePanel" hidden></section>
+
+  <section class="panel" id="chartPanel">
+    <div class="chart-head">
+      <h2 id="chartTitle">月ごとの損益</h2>
+      <div class="seg small" role="tablist" aria-label="表示する金額" id="basisSeg">
+        <button role="tab" data-b="pre" aria-selected="true">税引前</button>
+        <button role="tab" data-b="post" aria-selected="false">税引き後の目安</button>
+      </div>
+    </div>
+    <div class="chart" id="chart"></div>
+  </section>
+
+  <div class="cols">
+    <section class="panel"><h2>月別の内訳</h2><div id="months"></div></section>
+    <section class="panel"><h2>銘柄別</h2><div id="stocks"></div></section>
+  </div>
+
+  <details class="panel import" id="import">
+    <summary>楽天証券のCSVを取り込む</summary>
+    <div class="import-body">
+      <p>楽天証券の実現損益画面からCSVをダウンロードして、ファイルを選ぶか、中身を貼り付けてください。国内株式・米国株式・投資信託のどれでも取り込めます。同じ取引は重複せず、足りない分だけ追加されます。</p>
+      <div class="row">
+        <label for="csvType" style="font-size:13px;color:var(--muted)">種類</label>
+        <select id="csvType" class="sel-in">
+          <option value="auto">自動で判別</option>
+          <option value="jp">国内株式</option>
+          <option value="us">米国株式</option>
+          <option value="fund">投資信託</option>
+        </select>
+      </div>
+      <label class="drop" id="drop" for="csvFile"><strong>CSVをここにドラッグ＆ドロップ</strong><span>または タップしてファイルを選ぶ(複数OK・画面のどこに落としても入ります)</span></label>
+      <input type="file" id="csvFile" accept=".csv,.txt,text/csv" multiple hidden aria-label="CSVファイル">
+      <textarea id="csvText" placeholder="約定日,受渡日,銘柄コード,銘柄名,口座,信用区分,取引,数量[株],売却/決済単価[円],売却/決済額[円],平均取得価額[円],実現損益[円]&#10;..." aria-label="CSVの中身"></textarea>
+      <div class="row">
+        <button class="btn" id="importBtn" type="button">貼り付けた内容を取り込む</button>
+        <span id="msg" role="status"></span>
+      </div>
+    </div>
+  </details>
+
+  <div class="foot">
+    <span>売却して確定した損益だけを集計しています。含み損益や分配金は入りません。</span>
+    <span><button class="linkbtn" id="backupBtn" type="button">バックアップを保存</button> ／ <label class="linkbtn" for="restoreFile" style="cursor:pointer">バックアップから戻す</label><input type="file" id="restoreFile" accept=".json,application/json" hidden></span>
+    <span id="resetArea"><button class="linkbtn" id="resetBtn" type="button">記録をすべて消す</button></span>
+  </div>
+</div>
+
+<script>
+(function () {
+  var state = { rows: [], goal: null, fx: null, editFx: false, editGoal: false, period: 6, month: null, cat: 'all', acct: 'all', basis: 'pre', loaded: false };
+  var ref = null;
+  var TAX = {};
+  var ALL = { pre: 0, tax: 0, net: 0 };
+  var chain = Promise.resolve();
+  var TAXRATE = 0.20315;
+  var CATS = { jp: '国内株式', us: '米国株式', fund: '投資信託' };
+  var CATKEYS = ['jp', 'us', 'fund'];
+  var catOf = function (r) { return r.t || 'jp'; };
+  var acctKind = function (r) { var a = String(r.a || ''); return a.indexOf('特定') >= 0 ? 'tok' : a.indexOf('NISA') >= 0 ? 'nisa' : a.indexOf('一般') >= 0 ? 'gen' : 'unk'; };
+  var isTok = function (r) { return acctKind(r) === 'tok'; };
+  var ACCT = { tok: '特定・税あり', nisa: 'NISA・税なし', gen: '一般', unk: '口座不明' };
+  var badge = function (k) { return '<span class="acct ' + k + '">' + ACCT[k] + '</span>'; };
+  var $ = function (id) { return document.getElementById(id); };
+  var fmt = function (n) { return Math.round(n).toLocaleString('ja-JP'); };
+  var fmtP = function (n) { return Number(n).toLocaleString('ja-JP', { maximumFractionDigits: 2 }); };
+  var sgn = function (n) { var v = Math.round(n); return (v > 0 ? '+' : v < 0 ? '−' : '') + fmt(Math.abs(v)); };
+  var cls = function (n) { var v = Math.round(n); return v > 0 ? 'gain' : v < 0 ? 'loss' : ''; };
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+
+  /* ---------- CSV ---------- */
+  function parseCSV(text) {
+    var rows = [], row = [], cur = '', q = false, i, ch;
+    text = text.replace(/^﻿/, '');
+    for (i = 0; i < text.length; i++) {
+      ch = text[i];
+      if (q) {
+        if (ch === '"') { if (text[i + 1] === '"') { cur += '"'; i++; } else q = false; }
+        else cur += ch;
+      } else if (ch === '"') q = true;
+      else if (ch === ',') { row.push(cur); cur = ''; }
+      else if (ch === '\n' || ch === '\r') {
+        if (ch === '\r' && text[i + 1] === '\n') i++;
+        row.push(cur); rows.push(row); row = []; cur = '';
+      } else cur += ch;
+    }
+    if (cur !== '' || row.length) { row.push(cur); rows.push(row); }
+    return rows;
+  }
+
+  /* Reads Rakuten's realized-profit CSV for domestic stocks, US stocks or funds. Returns {rows, type} or {error}. */
+  function toRows(text, forced) {
+    var all = parseCSV(text), hi = -1, i;
+    for (i = 0; i < all.length; i++) {
+      var j = all[i].join('|');
+      if (j.indexOf('約定日') >= 0 && j.indexOf('実現損益') >= 0) { hi = i; break; }
+    }
+    if (hi < 0) return { error: '実現損益のCSVとして読めませんでした。ヘッダー行(約定日〜実現損益)を含めて取り込んでください。' };
+    var h = all[hi].map(function (s) { return s.trim(); });
+    var seen = '(見つかった列: ' + h.join(', ') + ')';
+    var has = function (s) { return h.some(function (c) { return c.indexOf(s) >= 0; }); };
+    var type = forced && forced !== 'auto' ? forced
+      : (has('ティッカー') || has('USD') || has('USドル') ? 'us' : has('ファンド') ? 'fund' : has('銘柄コード') ? 'jp' : null);
+    if (!type) return { error: '種類を判別できませんでした。取り込み欄の「種類」を選んでからもう一度試してください。' + seen };
+    var find = function (names) {
+      for (var a = 0; a < names.length; a++) for (var k = 0; k < h.length; k++) if (h[k].indexOf(names[a]) >= 0) return k;
+      return -1;
+    };
+    var gi = -1, k;
+    for (k = 0; k < h.length; k++) if (h[k].indexOf('実現損益') >= 0 && h[k].indexOf('円') >= 0) { gi = k; break; }
+    if (gi < 0) for (k = 0; k < h.length; k++) if (h[k].indexOf('実現損益') >= 0) { gi = k; break; }
+    if (gi < 0) return { error: '実現損益の列が見つかりませんでした。' + seen };
+    var ix = {
+      a: find(['口座']), d: find(['約定日']), c: find(['銘柄コード', 'ティッカー', 'コード']),
+      n: find(['銘柄名', 'ファンド名', '名称', '銘柄']), q: find(['数量']),
+      u: find(['売却/決済単価', '売却単価', '決済単価', '解約単価', '単価']), s: find(['売却/決済額', '売却額', '決済額', '解約額']),
+      b: find(['平均取得価額', '取得価額', '取得単価']), g: gi
+    };
+    if (ix.d < 0) return { error: '約定日の列が見つかりませんでした。' + seen };
+    var num = function (v) { var x = parseFloat(String(v == null ? '' : v).replace(/[,\s円]/g, '')); return isNaN(x) ? 0 : x; };
+    var get = function (r, c) { return c < 0 ? '' : (r[c] || '').trim(); };
+    var cu = /USD|USドル|\$/.test(h[gi]) ? 'USD' : '';
+    var ul = ix.q >= 0 && h[ix.q].indexOf('口') >= 0 ? '口' : '';
+    var prefix = type === 'jp' ? '' : type + '|';
+    var out = [], seenKey = {};
+    all.slice(hi + 1).forEach(function (r) {
+      var m = get(r, ix.d).match(/^(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})$/);
+      if (!m) return;
+      var name = get(r, ix.n), code = get(r, ix.c) || name;
+      var row = {
+        d: m[1] + '-' + ('0' + m[2]).slice(-2) + '-' + ('0' + m[3]).slice(-2),
+        t: type, a: get(r, ix.a), c: code, n: name || code,
+        q: num(r[ix.q]), u: num(r[ix.u]), s: num(r[ix.s]), b: num(r[ix.b]), g: num(r[ix.g])
+      };
+      if (cu) row.cu = cu;
+      if (ul) row.ul = ul;
+      var base = prefix + [row.d, row.c, row.q, row.u, row.s, row.g].join('|');
+      seenKey[base] = (seenKey[base] || 0) + 1;
+      row.k = base + '#' + seenKey[base];
+      out.push(row);
+    });
+    return { rows: out, type: type };
+  }
+
+  /* ---------- aggregate ---------- */
+  var mIdx = function (d) { return parseInt(d.slice(0, 4), 10) * 12 + parseInt(d.slice(5, 7), 10) - 1; };
+  var mLabel = function (idx) { return { y: Math.floor(idx / 12), m: (idx % 12) + 1 }; };
+
+  /* tax estimate: specific account (特定), 20.315% on the year's running total, so a later loss pulls tax back */
+  function taxByMonth(rows) {
+    var byYear = {}, out = {};
+    rows.forEach(function (r) {
+      if (!isTok(r)) return;
+      var i = mIdx(r.d), y = Math.floor(i / 12);
+      byYear[y] = byYear[y] || {};
+      byYear[y][i] = (byYear[y][i] || 0) + r.g;
+    });
+    Object.keys(byYear).forEach(function (y) {
+      var ytd = 0;
+      Object.keys(byYear[y]).map(Number).sort(function (a, b) { return a - b; }).forEach(function (i) {
+        var before = Math.max(0, ytd) * TAXRATE;
+        ytd += byYear[y][i];
+        out[i] = Math.max(0, ytd) * TAXRATE - before;
+      });
+    });
+    return out;
+  }
+
+  /* US stock rows hold dollar amounts; turn them into yen with the saved rate (without a rate they are left out) */
+  function eff(rows) {
+    var out = [];
+    rows.forEach(function (r) {
+      if (r.cu !== 'USD') { out.push(r); return; }
+      if (!state.fx) return;
+      out.push(Object.assign({}, r, { gusd: r.g, g: r.g * state.fx }));
+    });
+    return out;
+  }
+
+  function compute() {
+    var now = new Date();
+    var nowIdx = now.getFullYear() * 12 + now.getMonth();
+    var every = eff(state.rows);
+    var rows = state.cat === 'all' ? every : every.filter(function (r) { return catOf(r) === state.cat; });
+    var minIdx = every.length ? Math.min.apply(null, every.map(function (r) { return mIdx(r.d); })) : nowIdx;
+    var maxIdx = every.length ? Math.max.apply(null, every.map(function (r) { return mIdx(r.d); })) : nowIdx;
+    var end = Math.max(nowIdx, maxIdx);
+    var start = state.period === 0 ? Math.min(minIdx, end) : end - state.period + 1;
+
+    /* all products, all time: feeds the goal */
+    var txAll = taxByMonth(every), pre = 0, taxSum = 0, k;
+    every.forEach(function (r) { pre += r.g; });
+    for (k in txAll) taxSum += txAll[k];
+    ALL = { pre: pre, tax: taxSum, net: pre - taxSum };
+
+    if (state.acct !== 'all') rows = rows.filter(function (x) { return acctKind(x) === state.acct; });
+    TAX = taxByMonth(rows);
+    var r = summarize(rows, start, end);
+    r.empty = rows.length === 0;
+    r.needFx = !state.fx && state.rows.some(function (x) { return x.cu === 'USD'; });
+    r.sel = null;
+    if (state.month != null && state.month >= start && state.month <= end) {
+      r.sel = summarize(rows, state.month, state.month);
+      r.sel.idx = state.month;
+    } else {
+      state.month = null;
+    }
+    return r;
+  }
+
+  function summarize(rows, start, end) {
+    var months = [], i;
+    for (i = start; i <= end; i++) months.push({ idx: i, pnl: 0, trades: 0, has: false, tax: 0, tok: false });
+    var inWin = rows.filter(function (r) { var x = mIdx(r.d); return x >= start && x <= end; });
+    var trades = {};
+    inWin.forEach(function (r) {
+      var kd = acctKind(r);
+      var key = r.d + '|' + r.c + '|' + catOf(r) + '|' + kd;
+      if (!trades[key]) trades[key] = { d: r.d, c: r.c, n: r.n, t: catOf(r), k: kd, g: 0 };
+      trades[key].g += r.g;
+    });
+    var tl = Object.keys(trades).map(function (k) { return trades[k]; });
+    tl.forEach(function (t) {
+      var mo = months[mIdx(t.d) - start];
+      mo.pnl += t.g; mo.trades += 1; mo.has = true;
+    });
+    inWin.forEach(function (x) { if (isTok(x)) months[mIdx(x.d) - start].tok = true; });
+    var taxTotal = 0;
+    months.forEach(function (m) { m.tax = TAX[m.idx] || 0; taxTotal += m.tax; });
+    var hasTok = months.some(function (m) { return m.tok; });
+    var accSum = { tok: 0, nisa: 0, other: 0 }, accCnt = { tok: 0, nisa: 0, other: 0 };
+    inWin.forEach(function (x) {
+      var kd = acctKind(x), kk = kd === 'tok' || kd === 'nisa' ? kd : 'other';
+      accSum[kk] += x.g; accCnt[kk]++;
+    });
+    var wins = tl.filter(function (t) { return t.g > 0; });
+    var losses = tl.filter(function (t) { return t.g < 0; });
+    var total = tl.reduce(function (a, t) { return a + t.g; }, 0);
+    var best = tl.reduce(function (a, t) { return !a || t.g > a.g ? t : a; }, null);
+    var worst = tl.reduce(function (a, t) { return !a || t.g < a.g ? t : a; }, null);
+    var stocks = {};
+    tl.forEach(function (t) {
+      var sk = t.t + '|' + t.c + '|' + t.k;
+      if (!stocks[sk]) stocks[sk] = { c: t.c, n: t.n, k: t.k, g: 0, t: 0 };
+      stocks[sk].g += t.g; stocks[sk].t += 1;
+    });
+    var sl = Object.keys(stocks).map(function (k) { return stocks[k]; }).sort(function (a, b) { return b.g - a.g; });
+    var ty = {};
+    tl.forEach(function (t) { var x = ty[t.t] || (ty[t.t] = { t: t.t, g: 0, n: 0 }); x.g += t.g; x.n += 1; });
+    return { accSum: accSum, accCnt: accCnt, tax: taxTotal, hasTok: hasTok, rows: inWin, start: start, end: end, months: months, trades: tl, wins: wins, losses: losses, total: total, best: best, worst: worst, stocks: sl, types: ty };
+  }
+
+  /* ---------- render ---------- */
+  function niceStep(x) {
+    var p = Math.pow(10, Math.floor(Math.log10(x))), f = x / p;
+    return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * p;
+  }
+  function periodText(r) {
+    var a = mLabel(r.start), b = mLabel(r.end);
+    if (a.y === b.y && a.m === b.m) return a.y + '年' + a.m + '月';
+    return a.y + '年' + a.m + '月〜' + (a.y === b.y ? '' : b.y + '年') + b.m + '月';
+  }
+  function bar(x, y0, y1, w, c) {
+    var top = Math.min(y0, y1), h = Math.max(Math.abs(y1 - y0), 1.5);
+    return '<rect class="' + c + '" x="' + x.toFixed(1) + '" y="' + top.toFixed(1) + '" width="' + w.toFixed(1) + '" height="' + h.toFixed(1) + '" rx="2"/>';
+  }
+
+  function renderHero(root) {
+    var r = root.sel || root;
+    var el = $('hero');
+    el.className = 'panel hero';
+    if (!state.rows.length) {
+      el.innerHTML = '<div class="empty"><strong>' + (state.loaded ? 'まだ記録がありません' : '読み込み中…') + '</strong>' +
+        (state.loaded ? '楽天証券の実現損益CSVを、下の取り込み欄にドラッグ＆ドロップしてください。' : '') + '</div>';
+      return;
+    }
+    if (root.empty) {
+      el.innerHTML = root.needFx
+        ? '<div class="empty"><strong>ドル円レートを入れてください</strong>米国株の損益は米ドルで記録されています。下のレート欄に入れると、円で表示されます。</div>'
+        : '<div class="empty"><strong>この条件の記録はありません</strong>種類や口座の絞り込みを変えてみてください。</div>';
+      return;
+    }
+    var n = r.trades.length;
+    var R = Math.round;
+    var tokNet = R(r.accSum.tok - r.tax), nisa = R(r.accSum.nisa), oth = R(r.accSum.other);
+    var net = (r.accCnt.tok ? tokNet : 0) + (r.accCnt.nisa ? nisa : 0) + (r.accCnt.other ? oth : 0);
+    var winRate = n ? R(r.wins.length / n * 100) : null;
+    var noAcct = r.rows.some(function (x) { return !x.a; });
+    el.className = 'panel hero ' + (net > 0 ? 'up' : net < 0 ? 'down' : '');
+    var yen = function (v) { return '<b class="num ' + cls(v) + '">' + sgn(v) + '</b><span class="u">円</span>'; };
+    var card = function (k, title, gross, taxText, got) {
+      return '<div class="acard">' + '<div class="ahead">' + badge(k) + '<span class="at">' + title + '</span></div>' +
+        '<div class="arow"><span>売却の損益</span><span>' + yen(gross) + '</span></div>' +
+        '<div class="arow"><span>税</span><span class="tx">' + taxText + '</span></div>' +
+        '<div class="arow big"><span>手取り</span><span>' + yen(got) + '</span></div></div>';
+    };
+    var cards = [], parts = [];
+    if (r.accCnt.tok) {
+      var tg = R(r.accSum.tok);
+      cards.push(card('tok', '特定口座', tg, R(r.tax) > 0 ? '−' + fmt(r.tax) + '円' : '0円' + (tg <= 0 ? '(マイナスなので税なし)' : ''), tokNet));
+      parts.push('特定 ' + sgn(tokNet));
+    }
+    if (r.accCnt.nisa) { cards.push(card('nisa', 'NISA', nisa, '非課税', nisa)); parts.push('NISA ' + sgn(nisa)); }
+    if (r.accCnt.other) { cards.push(card('unk', '口座の情報なし', oth, '引いていません', oth)); parts.push('不明 ' + sgn(oth)); }
+    var usdIn = r.rows.some(function (x) { return x.gusd !== undefined; });
+    var how = '<details class="how"><summary>税の計算について</summary><p>税は特定口座だけにかかります。その年の特定口座の損益を通算して、プラスなら約20.3%を引いた目安です。NISAは非課税で、NISAの損失は特定口座の損益と相殺されません。' +
+      (state.cat !== 'all' ? 'この種類だけで計算しているので、全体の数字とは一致しません。' : '') +
+      (noAcct ? '口座の情報がない取引は、CSVを取り込み直すと反映されます。' : '') +
+      (usdIn && state.fx ? '米ドルの損益は1ドル=' + fmtP(state.fx) + '円で換算した目安です。' : '') +
+      '売却は銘柄・約定日ごとにまとめて数えています。</p></details>';
+    var tile = function (k, v, sm) { return '<div class="tile"><dt>' + k + '</dt><dd>' + v + '</dd><small>' + sm + '</small></div>'; };
+    var avgTile = root.sel
+      ? tile('1回平均', '<b class="num ' + (n ? cls(r.total / n) : '') + '">' + (n ? sgn(r.total / n) : '—') + '</b>', '円 / 回')
+      : tile('月平均', '<b class="num ' + cls(net / r.months.length) + '">' + sgn(net / r.months.length) + '</b>', '円 / 月(手取り)');
+    var scope = (state.cat === 'all' ? '' : '<span class="scope">' + esc(CATS[state.cat]) + '</span>');
+    el.innerHTML =
+      '<div class="label">' + esc(periodText(r)) + scope + '</div>' +
+      '<div class="kicker">合計の手取り(目安)</div>' +
+      '<div class="total">' + yen(net) + '</div>' +
+      (parts.length > 1 ? '<div class="eq">' + parts.join(' ＋ ').replace(/ ([+−])/g, ' $1') + '</div>' : '') +
+      '<div class="acards">' + cards.join('') + '</div>' +
+      '<dl class="tiles">' +
+      tile('勝率', '<b class="num">' + (winRate == null ? '—' : winRate + '%') + '</b>', n + '回中 ' + r.wins.length + '勝' + r.losses.length + '敗') +
+      avgTile +
+      tile('最大の勝ち', '<b class="num ' + (r.best && r.best.g > 0 ? 'gain' : '') + '">' + (r.best ? sgn(r.best.g) : '—') + '</b>', r.best ? esc(r.best.n) : '') +
+      tile('最大の負け', '<b class="num ' + (r.worst && r.worst.g < 0 ? 'loss' : '') + '">' + (r.worst ? sgn(r.worst.g) : '—') + '</b>', r.worst ? esc(r.worst.n) : '') +
+      '</dl>' + how;
+  }
+
+  function renderChart(r) {
+    var el = $('chart');
+    var post = state.basis === 'post' && r.hasTok;
+    $('basisSeg').hidden = !r.hasTok;
+    $('chartTitle').textContent = '月ごとの損益' + (post ? '(税引き後の目安)' : r.hasTok ? '(税引前)' : '');
+    var ms = r.months.slice().reverse();
+    var val = function (m) { return post ? m.pnl - m.tax : m.pnl; };
+    var n = ms.length;
+    var vals = ms.map(val);
+    var maxP = Math.max.apply(null, [0].concat(vals)), minN = Math.min.apply(null, [0].concat(vals));
+    var span = maxP - minN;
+    if (span === 0) span = 10000;
+    var step = niceStep(span / 4);
+    var top = Math.ceil(maxP / step) * step, bot = Math.floor(minN / step) * step;
+    if (top === bot) top = bot + step;
+    var W = Math.max(640, n * 56 + 80), H = 290, pl = 62, pr = 12, pt = 26, pb = 40;
+    var pw = W - pl - pr, ph = H - pt - pb;
+    var Y = function (v) { return pt + (top - v) / (top - bot) * ph; };
+    var band = pw / n, bw = Math.min(64, band * 0.58);
+    var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="月ごとの確定損益の棒グラフ">';
+    for (var t = bot; t <= top + 1e-6; t += step) {
+      var y = Y(t);
+      s += '<line class="' + (t === 0 ? 'zero' : 'grid') + '" x1="' + pl + '" x2="' + (W - pr) + '" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1) + '"/>';
+      s += '<text x="' + (pl - 8) + '" y="' + (y + 4).toFixed(1) + '" text-anchor="end">' + (t > 0 ? '+' : t < 0 ? '−' : '') + fmt(Math.abs(t)) + '</text>';
+    }
+    var skip = n > 14 ? 2 : 1;
+    ms.forEach(function (m, i) {
+      var cx = pl + band * (i + 0.5), lab = mLabel(m.idx), v = val(m);
+      var showVal = n <= 12;
+      if (m.has && Math.round(v) !== 0) {
+        var c = (v > 0 ? 'bar-gain' : 'bar-loss') + (r.sel && r.sel.idx !== m.idx ? ' dim' : '');
+        s += bar(cx - bw / 2, Y(0), Y(v), bw, c);
+        if (showVal) {
+          var vy = v > 0 ? Y(v) - 7 : Y(v) + 17;
+          s += '<text class="' + (v > 0 ? 'val-gain' : 'val-loss') + '" x="' + cx.toFixed(1) + '" y="' + vy.toFixed(1) + '" text-anchor="middle">' + sgn(v) + '</text>';
+        }
+      } else if (showVal) {
+        s += '<text x="' + cx.toFixed(1) + '" y="' + (Y(0) - 7).toFixed(1) + '" text-anchor="middle">0</text>';
+      }
+      if (i % skip === 0) {
+        s += '<text class="mlabel' + (r.sel && r.sel.idx === m.idx ? ' sel' : '') + '" x="' + cx.toFixed(1) + '" y="' + (H - 18) + '" text-anchor="middle">' + lab.m + '月</text>';
+        if (i === 0 || lab.m === 12) s += '<text x="' + cx.toFixed(1) + '" y="' + (H - 3) + '" text-anchor="middle">' + lab.y + '</text>';
+      }
+    });
+    ms.forEach(function (m, i) {
+      var lab = mLabel(m.idx);
+      s += '<rect class="hit" data-m="' + m.idx + '" x="' + (pl + band * i).toFixed(1) + '" y="' + pt + '" width="' + band.toFixed(1) + '" height="' + (H - pt) + '" fill="transparent"><title>' + lab.y + '年' + lab.m + '月: ' + sgn(val(m)) + '円</title></rect>';
+    });
+    s += '</svg>';
+    el.innerHTML = s;
+  }
+
+  function renderLists(r) {
+    var mh = '<table><thead><tr><th>月</th><th class="r">売却</th><th class="r">損益(円)</th></tr></thead><tbody>';
+    r.months.slice().reverse().forEach(function (m) {
+      var lab = mLabel(m.idx);
+      mh += '<tr data-m="' + m.idx + '"' + (r.sel && r.sel.idx === m.idx ? ' class="sel"' : '') + '><td><button class="rowbtn" type="button" data-m="' + m.idx + '">' + lab.y + '年' + lab.m + '月</button></td><td class="r dim">' + (m.trades ? m.trades + '回' : '—') + '</td>' +
+        '<td class="r"><span class="num ' + (m.has ? cls(m.pnl) : '') + '">' + (m.has ? sgn(m.pnl) : '0') + '</span>' + (m.tok ? '<small class="net">税引後 ' + sgn(m.pnl - m.tax) + '</small>' : '') + '</td></tr>';
+    });
+    $('months').innerHTML = mh + '</tbody></table>';
+
+    var v = r.sel || r;
+    if (!v.stocks.length) { $('stocks').innerHTML = '<div class="empty" style="padding-block:12px">この期間の売却はありません</div>'; return; }
+    var sh = '<table><thead><tr><th>銘柄</th><th class="r">損益(円)</th></tr></thead><tbody>';
+    v.stocks.forEach(function (st) {
+      sh += '<tr><td class="name">' + esc(st.n) + ' ' + badge(st.k) + '<br><small>' + esc(st.c === st.n ? '' : st.c + ' ・ ') + st.t + '回</small></td>' +
+        '<td class="r"><span class="num ' + cls(st.g) + '">' + sgn(st.g) + '</span></td></tr>';
+    });
+    $('stocks').innerHTML = sh + '</tbody></table>';
+  }
+
+  function renderTypes(r) {
+    var el = $('typePanel');
+    if (state.cat !== 'all' || !state.rows.length) { el.hidden = true; el.innerHTML = ''; return; }
+    var v = r.sel || r;
+    var h = '<h2>種類別の内訳(税引前)</h2><table><thead><tr><th>種類</th><th class="r">売却</th><th class="r">損益(円)</th></tr></thead><tbody>';
+    CATKEYS.forEach(function (k) {
+      var x = v.types[k];
+      h += '<tr><td><button class="rowbtn" type="button" data-cat="' + k + '">' + CATS[k] + '</button></td>' +
+        (x ? '<td class="r dim">' + x.n + '回</td><td class="r"><span class="num ' + cls(x.g) + '">' + sgn(x.g) + '</span></td>'
+           : '<td class="r dim">—</td><td class="r dim">記録なし</td>') + '</tr>';
+    });
+    el.innerHTML = h + '</tbody></table>';
+    el.hidden = false;
+  }
+
+  /* goal: the current assets are worked out from realized profit (all products, all time), plus an optional starting amount */
+  function today() {
+    var d = new Date();
+    return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
+  }
+  function parseYen(v) {
+    var s = String(v == null ? '' : v).replace(/[,\s円¥￥]/g, '').replace(/[０-９]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 65248); });
+    var m = s.match(/^(\d+(?:\.\d+)?)(億|万)?$/);
+    if (!m) return null;
+    var x = parseFloat(m[1]);
+    if (m[2] === '億') x *= 1e8; else if (m[2] === '万') x *= 1e4;
+    return Math.round(x);
+  }
+  function renderGoal() {
+    var el = $('goalPanel'), g = state.goal;
+    if (state.editGoal) {
+      if (el.getAttribute('data-mode') === 'edit') return;
+      el.setAttribute('data-mode', 'edit');
+      el.innerHTML = '<h2>目標金額</h2><div class="fields">' +
+        '<label for="goalTarget">目標金額(円)<input type="text" id="goalTarget" inputmode="numeric" autocomplete="off" placeholder="例: 7000万" value="' + (g && g.target ? fmt(g.target) : '') + '"></label>' +
+        '<label for="goalBase">元手(円・なくてもOK)<input type="text" id="goalBase" inputmode="numeric" autocomplete="off" placeholder="例: 100万" value="' + (g && g.base ? fmt(g.base) : '') + '"></label></div>' +
+        '<div class="row" style="margin-top:12px"><button class="btn" id="goalSave" type="button">保存</button><button class="btn ghost" id="goalCancel" type="button">やめる</button><span id="goalMsg" role="status"></span></div>' +
+        '<p class="hint">いまの資産は、取り込んだ確定損益(全期間・全種類、特定口座は税引き後の目安)に元手を足して自動で計算します。「万」「億」も使えます。</p>';
+      return;
+    }
+    el.setAttribute('data-mode', 'view');
+    if (!state.loaded) { el.innerHTML = '<h2>目標までの進み具合</h2><div class="goal-note">読み込み中…</div>'; return; }
+    if (!g || !g.target) {
+      el.innerHTML = '<div class="goal-head"><h2 style="margin:0">目標までの進み具合</h2><button class="btn ghost" id="goalEdit" type="button">目標を決める</button></div>' +
+        '<div class="goal-note">目標金額を入れると、確定損益から自動で達成率と残りを計算します。</div>';
+      return;
+    }
+    var base = g.base || 0;
+    var cur = base + ALL.net;
+    var pct = Math.max(0, cur / g.target * 100);
+    var shown = pct >= 100 ? '100' : pct < 10 ? pct.toFixed(1) : String(Math.floor(pct));
+    var rest = Math.max(0, g.target - cur);
+    el.innerHTML =
+      '<div class="goal-head"><h2 style="margin:0">目標までの進み具合</h2><button class="linkbtn" id="goalEdit" type="button">目標を変える</button></div>' +
+      '<div class="goal-pct num">' + shown + '<span>%</span></div>' +
+      '<div class="track" role="progressbar" aria-label="目標の達成率" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + Math.min(100, Math.round(pct)) + '"><div class="fill" style="width:' + Math.min(100, pct).toFixed(2) + '%"></div></div>' +
+      '<dl class="goal-nums">' +
+      '<div><dt>いまの資産</dt><dd class="num">' + (cur < 0 ? '−' : '') + fmt(Math.abs(cur)) + '円</dd></div>' +
+      '<div><dt>目標</dt><dd class="num">' + fmt(g.target) + '円</dd></div>' +
+      '<div><dt>残り</dt><dd class="num">' + (pct >= 100 ? '達成' : fmt(rest) + '円') + '</dd></div></dl>' +
+      '<div class="goal-note">' + (base ? '元手 ' + fmt(base) + '円 ＋ ' : '') + '確定損益 ' + sgn(ALL.net) + '円(全期間・全種類、特定口座は税引き後の目安)</div>';
+  }
+
+  /* exchange rate for US stocks */
+  function renderFx() {
+    var el = $('fxPanel');
+    var hasUsd = state.rows.some(function (x) { return x.cu === 'USD'; });
+    if (!hasUsd) { el.hidden = true; el.innerHTML = ''; el.setAttribute('data-mode', ''); return; }
+    el.hidden = false;
+    if (state.editFx || !state.fx) {
+      if (el.getAttribute('data-mode') === 'edit') return;
+      el.setAttribute('data-mode', 'edit');
+      el.innerHTML = '<h2>ドル円レート</h2><div class="row"><label for="fxIn" style="font-size:13px;color:var(--muted)">1ドル =</label>' +
+        '<input type="text" id="fxIn" class="fxin" inputmode="decimal" autocomplete="off" placeholder="例: 150" value="' + (state.fx ? state.fx : '') + '">' +
+        '<span style="color:var(--muted)">円</span><button class="btn" id="fxSave" type="button">保存</button>' +
+        (state.fx ? '<button class="btn ghost" id="fxCancel" type="button">やめる</button>' : '') + '<span id="fxMsg" role="status"></span></div>' +
+        '<p class="hint">米国株の損益は米ドルで記録されています。1つのレートでまとめて円に直した目安なので、実際の約定日ごとのレートとは少しずれます。</p>';
+      return;
+    }
+    el.setAttribute('data-mode', 'view');
+    el.innerHTML = '<div class="goal-head"><span style="font-size:13px;color:var(--muted)">米ドルの損益は <b class="num" style="font-size:18px;color:var(--ink)">1ドル=' + fmtP(state.fx) + '円</b> で換算した目安です</span>' +
+      '<button class="linkbtn" id="fxEdit" type="button">レートを変える</button></div>';
+  }
+
+  function renderNav(r) {
+    var nav = $('monthNav');
+    if (!state.rows.length) { nav.innerHTML = ''; return; }
+    var h = '<button class="chip-b" type="button" data-m="" aria-pressed="' + (state.month == null) + '">全体</button>';
+    r.months.slice().reverse().forEach(function (m) {
+      var lab = mLabel(m.idx);
+      h += '<button class="chip-b" type="button" data-m="' + m.idx + '" aria-pressed="' + (state.month === m.idx) + '">' +
+        (state.period === 0 || lab.m === 12 ? lab.y + '/' : '') + lab.m + '月<i class="dot ' + (m.has ? cls(m.pnl) : '') + '"></i></button>';
+    });
+    nav.innerHTML = h;
+    var p = nav.querySelector('[aria-pressed="true"]');
+    if (p) nav.scrollLeft = p.offsetLeft - nav.clientWidth / 2 + p.offsetWidth / 2;
+  }
+
+  function renderDetail(r) {
+    var el = $('detailPanel');
+    if (!r.sel) { el.hidden = true; el.innerHTML = ''; return; }
+    var lab = mLabel(r.sel.idx);
+    var rows = r.sel.rows.slice().sort(function (a, b) { return a.d < b.d ? -1 : a.d > b.d ? 1 : 0; });
+    var h = '<h2>' + lab.y + '年' + lab.m + '月の売却明細</h2>';
+    if (!rows.length) {
+      h += '<div class="empty" style="padding-block:8px">この月は売却がありません</div>';
+    } else {
+      h += '<table><thead><tr><th>約定日</th><th>銘柄</th><th class="r">損益(円)</th></tr></thead><tbody>';
+      rows.forEach(function (x) {
+        var usd = x.cu === 'USD';
+        var px = function (v) { return (usd ? '$' : '') + fmtP(v) + (usd ? '' : '円'); };
+        var info = x.ul === '口'
+          ? fmtP(x.q) + '口 ・解約単価 ' + px(x.u) + '/万口 ・取得 ' + px(x.b) + '/万口'
+          : fmtP(x.q) + '株 × ' + px(x.u) + ' ・取得 ' + px(x.b);
+        h += '<tr><td class="dim">' + parseInt(x.d.slice(5, 7), 10) + '/' + parseInt(x.d.slice(8, 10), 10) + '</td>' +
+          '<td class="name">' + esc(x.n) + ' ' + badge(acctKind(x)) + '<br><small>' + info +
+          (state.cat === 'all' ? ' ・' + esc(CATS[catOf(x)]) : '') + '</small></td>' +
+          '<td class="r"><span class="num ' + cls(x.g) + '">' + sgn(x.g) + '</span>' + (x.gusd !== undefined ? '<small class="net">$' + fmtP(x.gusd) + '</small>' : '') + '</td></tr>';
+      });
+      h += '</tbody></table>';
+    }
+    el.innerHTML = h;
+    el.hidden = false;
+  }
+
+  function render() {
+    var r = compute();
+    renderNav(r); renderHero(r); renderChart(r); renderLists(r); renderDetail(r); renderFx(); renderTypes(r); renderGoal();
+    Array.prototype.forEach.call(document.querySelectorAll('#periodSeg button'), function (b) {
+      b.setAttribute('aria-selected', String(parseInt(b.getAttribute('data-p'), 10) === state.period));
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('#acctSeg button'), function (b) {
+      b.setAttribute('aria-selected', String(b.getAttribute('data-acct') === state.acct));
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('#catSeg button'), function (b) {
+      b.setAttribute('aria-selected', String(b.getAttribute('data-cat') === state.cat));
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('#basisSeg button'), function (b) {
+      b.setAttribute('aria-selected', String(b.getAttribute('data-b') === (state.basis === 'post' && r.hasTok ? 'post' : 'pre')));
+    });
+    $('resetArea').hidden = !state.rows.length;
+    if (state.loaded && !state.rows.length) $('import').open = true;
+  }
+
+  /* ---------- import ---------- */
+  function say(text, kind) { var m = $('msg'); m.textContent = text; m.className = kind || ''; }
+
+  function persist() {
+    if (!ref) { say('保存できません(プライベートモードでは使えません)。', 'err'); return Promise.resolve(); }
+    chain = chain.then(function () {
+      state.updated = new Date().toISOString();
+      return ref.set(packData()).then(function () { scheduleSync(); });
+    }).catch(function (e) {
+      say(e && e.code === 'invalid_argument'
+        ? 'この画面では保存できません。自分のデータを保存するには、編集できる権限(Contributor)が必要です。'
+        : '保存できませんでした(' + (e && e.code ? e.code : 'error') + ')。もう一度試してください。', 'err');
+    });
+    return chain;
+  }
+
+  function save(rows) {
+    state.rows = rows;
+    render();
+    return persist();
+  }
+
+  function importOne(text, label) {
+    var res = toRows(text, $('csvType').value);
+    var pre = label ? label + ': ' : '';
+    if (res.error) return { t: pre + res.error, k: 'err' };
+    var parsed = res.rows;
+    if (!parsed.length) return { t: pre + '取引の行が見つかりませんでした。', k: 'err' };
+    var have = {};
+    state.rows.forEach(function (r) { have[r.k] = true; });
+    var add = parsed.filter(function (r) { return !have[r.k]; });
+    var skipped = parsed.length - add.length;
+    var pm = {};
+    parsed.forEach(function (r) { pm[r.k] = r; });
+    var filled = 0;
+    var base = state.rows.map(function (r) {
+      if (!r.a && pm[r.k] && pm[r.k].a) { filled++; return Object.assign({}, r, { a: pm[r.k].a }); }
+      return r;
+    });
+    if (!add.length && !filled) return { t: pre + '新しい取引はありませんでした(' + skipped + '件は取り込み済み)。', k: '' };
+    state.rows = base.concat(add).sort(function (a, b) { return a.d < b.d ? -1 : a.d > b.d ? 1 : 0; });
+    var parts = [];
+    if (add.length) parts.push(CATS[res.type] + 'を' + add.length + '件追加');
+    if (filled) parts.push(filled + '件に口座の情報を追加');
+    return { t: pre + parts.join('、') + 'しました' + (skipped - filled > 0 ? '(' + (skipped - filled) + '件は取り込み済み)' : '') + '。' +
+      (res.type === 'us' && !state.fx ? 'ドル円レートを入れると円で出ます。' : ''), k: 'ok' };
+  }
+
+  function importMany(items) {
+    var out = items.map(function (it) { return importOne(it.text, items.length > 1 ? it.name : ''); });
+    render();
+    var bad = out.some(function (o) { return o.k === 'err'; });
+    say(out.map(function (o) { return o.t; }).join('\n'), bad ? 'err' : out.some(function (o) { return o.k === 'ok'; }) ? 'ok' : '');
+    if (out.some(function (o) { return o.k === 'ok'; })) {
+      persist().then(function () { if ($('msg').className === 'err') return; });
+    }
+  }
+
+  function readFiles(files) {
+    files = Array.prototype.slice.call(files || []);
+    if (!files.length) return;
+    say('読み込み中…', '');
+    Promise.all(files.map(function (f) {
+      return f.arrayBuffer().then(function (b) { return { name: f.name, text: decode(b) }; });
+    })).then(importMany, function () { say('ファイルを読み込めませんでした。', 'err'); });
+  }
+
+  function decode(buf) {
+    try { return new TextDecoder('utf-8', { fatal: true }).decode(buf); }
+    catch (e) { return new TextDecoder('shift_jis').decode(buf); }
+  }
+
+  $('importBtn').addEventListener('click', function () {
+    var t = $('csvText').value;
+    if (!t.trim()) { say('CSVの中身を貼り付けるか、ファイルを選んでください。', 'err'); return; }
+    importMany([{ name: '貼り付け', text: t }]);
+    $('csvText').value = '';
+  });
+  $('csvFile').addEventListener('change', function (e) { readFiles(e.target.files); e.target.value = ''; });
+  var dragN = 0;
+  document.addEventListener('dragenter', function (e) { e.preventDefault(); dragN++; document.body.classList.add('dragging'); $('import').open = true; });
+  document.addEventListener('dragleave', function () { dragN = Math.max(0, dragN - 1); if (!dragN) document.body.classList.remove('dragging'); });
+  document.addEventListener('dragover', function (e) { e.preventDefault(); });
+  document.addEventListener('drop', function (e) {
+    e.preventDefault(); dragN = 0; document.body.classList.remove('dragging');
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) { $('import').open = true; readFiles(e.dataTransfer.files); }
+  });
+
+  Array.prototype.forEach.call(document.querySelectorAll('#periodSeg button'), function (b) {
+    b.addEventListener('click', function () { state.period = parseInt(b.getAttribute('data-p'), 10); render(); });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('#basisSeg button'), function (b) {
+    b.addEventListener('click', function () { state.basis = b.getAttribute('data-b'); render(); });
+  });
+
+  /* pick a month (chips, chart, list) or a product type (tabs, type list); tapping the same month again goes back to the whole period */
+  document.addEventListener('click', function (e) {
+    var el = e.target && e.target.closest ? e.target : null;
+    if (!el) return;
+    var ac = el.closest('[data-acct]');
+    if (ac) { state.acct = ac.getAttribute('data-acct'); render(); return; }
+    var cat = el.closest('[data-cat]');
+    if (cat) { state.cat = cat.getAttribute('data-cat'); render(); return; }
+    var t = el.closest('[data-m]');
+    if (!t) return;
+    var raw = t.getAttribute('data-m');
+    var v = raw === '' ? null : parseInt(raw, 10);
+    state.month = (v !== null && state.month === v) ? null : v;
+    render();
+  });
+
+  /* goal buttons */
+  document.addEventListener('click', function (e) {
+    var id = e.target && e.target.id;
+    if (id === 'fxEdit') { state.editFx = true; renderFx(); var f0 = $('fxIn'); if (f0) f0.focus(); }
+    else if (id === 'fxCancel') { state.editFx = false; renderFx(); }
+    else if (id === 'fxSave') {
+      var fv = parseFloat($('fxIn').value.replace(/[,\s円]/g, ''));
+      if (!(fv >= 1 && fv <= 1000)) { $('fxMsg').textContent = 'レートは数字で入力してください(例: 150)。'; return; }
+      state.fx = fv;
+      state.editFx = false;
+      render();
+      persist();
+    }
+    else if (id === 'goalEdit') { state.editGoal = true; renderGoal(); var t0 = $('goalTarget'); if (t0) t0.focus(); }
+    else if (id === 'goalCancel') { state.editGoal = false; renderGoal(); }
+    else if (id === 'goalSave') {
+      var gm = $('goalMsg');
+      var t = parseYen($('goalTarget').value);
+      var rawB = $('goalBase').value.trim();
+      var b = rawB === '' ? 0 : parseYen(rawB);
+      if (!t || t <= 0) { gm.textContent = '目標金額を数字で入力してください(例: 7000万)。'; return; }
+      if (b === null) { gm.textContent = '元手は数字で入力してください(例: 100万)。'; return; }
+      state.goal = { target: t, base: b };
+      state.editGoal = false;
+      renderGoal();
+      persist();
+    }
+  });
+
+  /* two-step reset, no confirm() dialog */
+  function bindReset() {
+    var area = $('resetArea');
+    area.innerHTML = '<button class="linkbtn" id="resetBtn" type="button">記録をすべて消す</button>';
+    $('resetBtn').addEventListener('click', function () {
+      area.innerHTML = '消すと元に戻せません。 <button class="linkbtn loss" id="resetYes" type="button">消す</button> / <button class="linkbtn" id="resetNo" type="button">やめる</button>';
+      $('resetNo').addEventListener('click', bindReset);
+      $('resetYes').addEventListener('click', function () { state.resetAt = Date.now(); save([]).then(bindReset); });
+    });
+  }
+  bindReset();
+
+  render();
+
+  /* ---------- storage: saved in this device's browser ---------- */
+  var KEY = 'pnl-ledger-v1';
+  ref = {
+    set: function (d) {
+      try { localStorage.setItem(KEY, JSON.stringify(d)); return Promise.resolve(); }
+      catch (e) { return Promise.reject({ code: 'storage' }); }
+    }
+  };
+  function applyData(d) {
+    state.rows = d && Array.isArray(d.rows) ? d.rows : [];
+    state.goal = d && d.goal && d.goal.target ? d.goal : null;
+    state.fx = d && typeof d.fx === 'number' && d.fx > 0 ? d.fx : null;
+    state.updated = d && d.updated || '';
+    state.resetAt = d && d.resetAt || 0;
+  }
+  function packData() { return { rows: state.rows, goal: state.goal, fx: state.fx, updated: state.updated || '', resetAt: state.resetAt || 0 }; }
+  try { applyData(JSON.parse(localStorage.getItem(KEY) || 'null')); } catch (e) { applyData(null); }
+  state.loaded = true;
+  render();
+
+  /* backup: save to a file / restore from a file */
+  $('backupBtn').addEventListener('click', function () {
+    var blob = new Blob([JSON.stringify({ rows: state.rows, goal: state.goal, fx: state.fx })], { type: 'application/json' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'kakutei-sonneki-backup-' + today() + '.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  });
+  $('restoreFile').addEventListener('change', function (e) {
+    var f = e.target.files && e.target.files[0]; if (!f) return;
+    f.text().then(function (t) {
+      var d = JSON.parse(t);
+      if (!d || !Array.isArray(d.rows)) throw 0;
+      d.resetAt = Date.now(); d.updated = new Date().toISOString(); applyData(d); render(); persist();
+      say('バックアップから戻しました(' + d.rows.length + '件)。', 'ok');
+      $('import').open = true;
+    }).catch(function () { say('バックアップファイルを読めませんでした。', 'err'); });
+    e.target.value = '';
+  });
+
+  /* ---------- Google Drive sync (hidden app-data folder, only this app can see it) ---------- */
+  var SYNCKEY = 'pnl-sync-on', CIDKEY = 'pnl-client-id', FILE = 'pnl-ledger.json', DRIVE = 'https://www.googleapis.com/drive/v3';
+  var tok = null, tokExp = 0, syncing = false, pending = false, dirty = false, lastSync = null, syncErr = '', setupOpen = false, tm = null;
+  function clientId() { return String(window.PNL_CLIENT_ID || '').trim() || String(localStorage.getItem(CIDKEY) || '').trim(); }
+  function tokOk() { return tok && Date.now() < tokExp - 60000; }
+  function strip(d) {
+    return JSON.stringify({ rows: (d.rows || []).slice().sort(function (a, b) { return a.k < b.k ? -1 : a.k > b.k ? 1 : 0; }), goal: d.goal || null, fx: d.fx || null, resetAt: d.resetAt || 0 });
+  }
+  /* rows from both sides are combined; a side older than the latest "reset all" is dropped */
+  function mergeData(L, Rm) {
+    var R = Math.max(L.resetAt || 0, Rm.resetAt || 0), map = {};
+    [L, Rm].filter(function (x) { return (x.resetAt || 0) === R; }).forEach(function (x) {
+      (x.rows || []).forEach(function (r) { if (!map[r.k] || (!map[r.k].a && r.a)) map[r.k] = r; });
+    });
+    var rows = Object.keys(map).map(function (k) { return map[k]; }).sort(function (a, b) { return a.d < b.d ? -1 : a.d > b.d ? 1 : a.k < b.k ? -1 : 1; });
+    var newer = (L.updated || '') >= (Rm.updated || '') ? L : Rm, older = newer === L ? Rm : L;
+    return { rows: rows, goal: newer.goal || older.goal || null, fx: newer.fx || older.fx || null, updated: newer.updated || older.updated || '', resetAt: R };
+  }
+  function getToken(interactive) {
+    return new Promise(function (res, rej) {
+      if (tokOk()) return res(tok);
+      if (!interactive) return rej(new Error('need'));
+      if (!(window.google && google.accounts && google.accounts.oauth2)) return rej(new Error('Googleのログイン部品を読み込めません(オフラインかもしれません)'));
+      var cid = clientId();
+      if (!cid) return rej(new Error('クライアントIDが未設定です'));
+      google.accounts.oauth2.initTokenClient({
+        client_id: cid, scope: 'https://www.googleapis.com/auth/drive.appdata',
+        callback: function (r) {
+          if (r.error) return rej(new Error(r.error_description || r.error));
+          tok = r.access_token; tokExp = Date.now() + (r.expires_in || 3600) * 1000;
+          try { localStorage.setItem(SYNCKEY, '1'); } catch (e) {}
+          res(tok);
+        },
+        error_callback: function (e) { rej(new Error(e && e.type === 'popup_closed' ? 'ログインがキャンセルされました' : e && e.type === 'popup_failed_to_open' ? 'ポップアップがブロックされました' : 'ログインに失敗しました')); }
+      }).requestAccessToken({});
+    });
+  }
+  function gapi(url, opt) {
+    opt = opt || {};
+    opt.headers = Object.assign({ Authorization: 'Bearer ' + tok }, opt.headers || {});
+    return fetch(url, opt).then(function (r) {
+      if (r.status === 401) { tok = null; throw new Error('ログインの期限が切れました。もう一度押してください'); }
+      if (!r.ok) throw new Error('Driveに接続できません(' + r.status + ')' + (r.status === 403 ? 'Drive APIの有効化と権限(drive.appdata)の設定を確認してください' : ''));
+      return r;
+    });
+  }
+  function upload(id, data) {
+    var body = JSON.stringify(data);
+    if (id) return gapi('https://www.googleapis.com/upload/drive/v3/files/' + id + '?uploadType=media', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: body });
+    var b = 'pnlb' + Date.now();
+    var mp = '--' + b + '\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n' + JSON.stringify({ name: FILE, parents: ['appDataFolder'] }) +
+      '\r\n--' + b + '\r\nContent-Type: application/json\r\n\r\n' + body + '\r\n--' + b + '--';
+    return gapi('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', { method: 'POST', headers: { 'Content-Type': 'multipart/related; boundary=' + b }, body: mp });
+  }
+  function syncNow(interactive) {
+    if (syncing) { pending = true; return Promise.resolve(); }
+    syncing = true; syncErr = ''; drawSync();
+    return getToken(interactive).then(function () {
+      return gapi(DRIVE + '/files?spaces=appDataFolder&fields=files(id)&q=' + encodeURIComponent("name='" + FILE + "'")).then(function (r) { return r.json(); }).then(function (j) {
+        var id = j.files && j.files[0] && j.files[0].id;
+        return (id ? gapi(DRIVE + '/files/' + id + '?alt=media').then(function (r) { return r.json(); }) : Promise.resolve(null)).then(function (remote) {
+          var local = packData(), merged = remote ? mergeData(local, remote) : local;
+          if (strip(merged) !== strip(local)) { applyData(merged); ref.set(packData()); render(); }
+          if (remote && strip(merged) === strip(remote)) return;
+          return upload(id, packData());
+        });
+      });
+    }).then(function () { lastSync = new Date(); dirty = false; })
+      .catch(function (e) { if (e.message !== 'need') syncErr = e.message; else dirty = true; })
+      .then(function () { syncing = false; drawSync(); if (pending) { pending = false; scheduleSync(); } });
+  }
+  function scheduleSync() {
+    if (!clientId() || !localStorage.getItem(SYNCKEY)) return;
+    clearTimeout(tm);
+    tm = setTimeout(function () { if (tokOk()) syncNow(false); else { dirty = true; drawSync(); } }, 1200);
+  }
+  function drawSync() {
+    var el = $('syncBar'), cid = clientId(), on = !!localStorage.getItem(SYNCKEY), h;
+    var row = function (t, sub, btn) { return '<div class="srow"><span class="st"><b>' + t + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '</span>' + btn + '</div>'; };
+    var hh = function (d) { return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2); };
+    if (!cid) {
+      h = row('Googleで同期', 'スマホとPCで同じデータを使えます', '<button class="btn ghost" id="syncSetup" type="button">' + (setupOpen ? '閉じる' : '設定する') + '</button>');
+      if (setupOpen) h += '<div class="setup"><label for="cidIn">OAuthクライアントID(1本目のツールと同じものでOK)</label><div class="row"><input type="text" id="cidIn" class="fxin" style="width:100%;flex:1" autocomplete="off" placeholder="xxxx.apps.googleusercontent.com"><button class="btn" id="cidSave" type="button">保存</button></div>' +
+        '<p class="hint">Google Cloudの同じプロジェクトで、Google Drive APIを有効にし、同意画面のスコープに drive.appdata を足しておきます。configファイル(config.js)に貼れば、端末ごとの入力は不要です。</p></div>';
+    } else if (syncing) h = row('同期中…', '', '');
+    else if (syncErr) h = row('<span class="loss">同期できませんでした</span>', esc(syncErr), '<button class="btn" id="syncBtn" type="button">もう一度</button>');
+    else if (tokOk()) h = row('Googleと同期済み' + (lastSync ? ' ' + hh(lastSync) : ''), '変更すると自動で同期します', '<button class="btn ghost" id="syncBtn" type="button">今すぐ同期</button>');
+    else if (on) h = row(dirty ? '変更がまだ同期されていません' : 'Googleと同期できます', 'タップすると最新の状態にそろえます', '<button class="btn" id="syncBtn" type="button">同期する</button>');
+    else h = row('Googleで同期', 'スマホとPCで同じデータを使えます', '<button class="btn" id="syncBtn" type="button">Googleでログインして同期</button>');
+    el.innerHTML = h;
+  }
+  document.addEventListener('click', function (e) {
+    var id = e.target && e.target.id;
+    if (id === 'syncBtn') syncNow(true);
+    else if (id === 'syncSetup') { setupOpen = !setupOpen; drawSync(); }
+    else if (id === 'cidSave') {
+      var v = $('cidIn').value.trim();
+      if (!/\.apps\.googleusercontent\.com$/.test(v)) { $('cidIn').style.borderColor = 'var(--loss)'; return; }
+      try { localStorage.setItem(CIDKEY, v); } catch (x) {}
+      setupOpen = false; drawSync();
+    }
+  });
+  document.addEventListener('visibilitychange', function () { if (!document.hidden && tokOk()) syncNow(false); });
+  drawSync();
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {});
+})();
+</script>
+
+</body></html>
+</body></html>
